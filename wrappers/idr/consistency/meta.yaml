@@ -1,0 +1,4 @@
+name: idr consistency
+description: Performs idr consistency analysis for two sets of peak calls given as 'regionpeak' files
+authors:
+  - Johann Hawe

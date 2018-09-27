@@ -1,0 +1,4 @@
+name: samtools random_spit
+description: Splits a BAM file, i.e. randomly distribute reads of a BAM or SAM file into two individual BAM files
+authors:
+  - Johann Hawe

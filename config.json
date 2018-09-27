@@ -1,0 +1,33 @@
+{
+	"data" : {
+		"mapped" : "data/current/samples/",
+		"raw_dir" : "data/current/raw/",
+		"genome_idx" : "/storage/groups/epigenereg01/datasets/igenomes/Mus_musculus/UCSC/mm9/Sequence/BWAIndex/genome.fa",
+		"control" : "results/input.bam"
+	},
+	"results" : {
+		"processed" : "results/current/processed_bam/",
+		"peaks" : "results/current/peaks"
+	},
+
+	"replicates" : {
+		"suffix1" : "-1",
+		"suffix2" : "-2"
+	},
+
+	"split_bam" : {
+		"suffix1" : "-split1",
+		"suffix2" : "-split2"
+	},
+	"samtools" : {
+		"mapq" : 30
+	},
+	"macs" : {
+		"genome" : "mm",
+		"qcut"    : 0.05,
+		"pcut"    : 0.05
+	},
+	"idr" : {
+		"maxpeaks" : 100000
+	}
+}

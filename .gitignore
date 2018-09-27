@@ -1,0 +1,6 @@
+logs/
+benchmarks/
+*.RData
+*.rds
+.snakemake/
+nohup.out

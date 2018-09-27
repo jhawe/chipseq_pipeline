@@ -1,0 +1,161 @@
+configfile: "./config.json"
+
+# lists containing used variables for generating file names
+# suffixes for replicates
+RSU = [config["replicates"]["suffix1"], config["replicates"]["suffix2"]]
+# suffixes for split bam files in idr analysis
+SSU = [config["split_bam"]["suffix1"],config["split_bam"]["suffix2"]]
+
+# fully process the bam files, i.e. remove duplicates and
+# low quality reads
+rule process_bam:
+	input: config["data"]["directory"] + "{sample}.bam"
+	output: "results/{sample}.bam", "results/{sample}.bam.bai"
+	params:
+		mapq=config["samtools"]["mapq"]
+	benchmark:
+		"benchmarks/process_bam/{sample}.bmk"
+	conda:
+		"envs/samtools.yaml"
+	log:
+		"logs/process_bam/{sample}.log"
+	threads: 10
+	resources:
+		mem_mb=8000
+	shell:
+		"samtools view -bq{params.mapq} -@{threads} {input} | \
+		 samtools sort -@{threads} - | \
+		 samtools rmdup -S - {output[0]} && samtools index {output[0]}"
+		
+# split bam files to 50/50 reads
+rule split_bam:
+	input: "results/{sample}-{R}.bam"
+	output: expand("results/{{sample}}-{{R}}{sp}.bam", sp=SSU) 
+	threads: 4
+	resources:
+		mem_mb=400
+	benchmark:
+		"benchmarks/split_bam/{sample}-{R}.bmk"
+	params:
+		"-@4",
+		"-b"
+	wrapper:
+		"file:wrappers/samtools/random_split"
+
+# merge replicates for IDR analysis
+# TODO
+rule merge_replicates:
+	input:	expand("results/{{sample}}{su}.bam", su=RSU)
+	output: "results/{sample}-merged.bam", "results/{sample}-merged.bam.bai"
+	log:
+		"logs/merge_replicates/{sample}.log"
+	benchmark:
+		"benchmarks/merge_replicates/{sample}.bmk"
+	resources:
+		mem_mb=2000
+	threads: 1
+	conda:
+		"envs/samtools.yaml"
+	shell:
+		"samtools merge {output[0]} {input[0]} {input[1]} \
+		 && samtools index {output[0]} &> {log}"
+
+# call low stringency peaks using macs2
+# TODO
+
+# create regionpeak file for IDR analysis
+rule regionpeak:
+	input:
+		control=config["data"]["control"],
+		treatment="results/{sample}.bam",
+	output:
+		"results/{sample}_peaks.narrowPeak"
+	params:
+		genome=config["macs"]["genome"],
+		pcut=config["macs"]["pcut"],
+		maxpeaks=config["idr"]["maxpeaks"],
+		prefix="{sample}",
+		odir="results/"
+	resources:
+		mem_mb=600
+	threads: 1
+	benchmark:
+		"benchmarks/regionpeak/{sample}.bmk"
+	log:
+		"logs/regionpeak/{sample}.log"
+	wrapper:
+		"file:wrappers/idr/macs2_peaks"
+
+rule consistency_analysis:
+	input:
+		rep1="results/{sample}-{r1}_peaks.narrowPeak",
+		rep2="results/{sample}-{r2}_peaks.narrowPeak",
+	output:
+		"results/{sample}-{r1}-vs-{sample}-{r2}-idr.txt"
+	resources:
+		mem_mb=500
+	threads: 1
+	log:
+		"logs/consistency/{sample}-{r1}-{r2}.log"
+	benchmark:
+		"benchmarks/consistency_analysis/{sample}-{r1}-{r2}.bmk"
+	wrapper:
+		"file:wrappers/idr/consistency"
+
+
+def idr_files(wc):
+	sc1 = "results/{sample}{rep1}{split1}-vs-{sample}{rep1}{split2}-idr.txt".format(rep1=RSU[0], rep2=RSU[1], split1=SSU[0], split2=SSU[1], sample=wc.sample)
+	sc2 = "results/{sample}{rep2}{split1}-vs-{sample}{rep2}{split2}-idr.txt".format(rep1=RSU[0], rep2=RSU[1], split1=SSU[0], split2=SSU[1], sample=wc.sample)
+	rep1_v_rep2 = "results/{sample}{rep1}-vs-{sample}{rep2}-idr.txt".format(rep1=RSU[0], rep2=RSU[1], sample=wc.sample)
+	merged = "results/{sample}-merged{split1}-vs-{sample}-merged{split2}-idr.txt".format(split1=SSU[0], split2=SSU[1], sample=wc.sample)
+
+	# return dictionary containing the lists
+	out = {
+		"rep1_selfconsistency" : sc1,
+		"rep2_selfconsistency" : sc2, 
+		"rep1_rep2" : rep1_v_rep2,
+		"merged_selfconsistency" : merged
+	}
+	return out
+
+rule summarize_idr:
+	input: 
+		unpack(idr_files)
+	output: 
+		"results/{sample}-idr-summary.txt"
+	params:
+		pcut=config["macs"]["pcut"],
+		sample="{sample}"
+	script:
+		"scripts/summarize-idr.R"
+
+# get list of samples in input directory
+INDIR = config["data"]["directory"]
+SAMPLES = glob_wildcards(INDIR + "{id}-{rep}.bam")
+
+rule merge_idr_summaries:
+	input:  expand("results/{sample}-idr-summary.txt", sample=SAMPLES.id)
+	output:
+		"results/idr-summary.txt"
+	shell:
+		"cat {input} | sort -r | uniq > {output}" 
+
+rule plot_idr:
+	input: "results/idr-summary.txt"
+	output: "results/idr-summary.html"
+	script:
+		"scripts/plot-idr.Rmd"
+
+rule test:
+	input: rep1="results/BH1-2.regionPeak.gz",
+		rep2="results/BH1-1.regionPeak.gz"
+	output:
+		"results/test-idr.txt"
+	resources:
+		mem_mb=500
+	threads: 1
+	conda:
+		"wrappers/idr/consistency/environment.yaml"
+	shell:
+		"idr --rank p.value -o {output[0]} --input-file-type narrowPeak --use-old-output-format -s {input.rep1} {input.rep2}"
+

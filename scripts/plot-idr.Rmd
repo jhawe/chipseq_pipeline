@@ -1,0 +1,68 @@
+---
+title: "IDR summary"
+author: "Johann Hawe"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+params:
+   rmd: "plot-idr.Rmd"
+output:
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+```{r echo=F}
+library(ggplot2)
+library(reshape2)
+
+# get snakemake vars
+# TODO the paste command is a quick hack to avoid wdir problems
+# with rmarkdown files. Follow up on this and learn the proper way
+# (if any) to handle this...
+fsummary <- paste0("../", snakemake@input[[1]])
+
+```
+
+This document depicts a graphical) summary of the results from the IDR analysis.
+It shows for each available sample the number of replicated peaks, both for the *within replicate selfconsistency* analysis and for the *between replicate* analysis (merged selfconsistency and rep1 vs rep2) as detailed below.
+
+## Replicated peaks per sample
+We look at the number of reproducible peaks identified per sample. Overall, we see the number of peaks for the selfconsistency analysis of **each replicate** (rep1_selfconsistency, $rep1_{sc}$ and rep2_selfconsistency, $rep1_{sc}$), the number of reproducible peaks for the **merged repliceates** (merged_selfconsistency $merged_{sc}$) and the number of peaks reproducible **between the two replicates** (rep1_rep2, $rep_{1,2}$). For each sample, we calculated the ratios 
+$$r_1 = {rep1_{sc} \over {rep2_{sc}}}$$
+and
+$$r_2 = {merged_{sc} \over {rep_{1,2}}}$$. 
+These ratios can be used as an indicator of reproducibility: If both ratios, $r_1$ and $r_2$, show a more than two fold divergence (e.g. $r_1 > 2$ & $r_1 < 0.5$) the sample is said to show a low reproducibility, otherwise the reproducibility is said to be high enough for using both replicates as is [1].
+```{r echo=F, fig.align='center', fig.width=10}
+# load the result table for all samples
+tab <- read.table(fsummary, header=T, sep="\t")
+head(tab)
+
+# prepare for plotting
+melted <- melt(tab, id.vars = c("sample", "passed", "np_nt", "n1_n2"))
+colnames(melted)[grepl("variable", colnames(melted))] <- "analysis"
+n <- nrow(tab)
+
+theme_update(plot.title = element_text(hjust = 0.5),
+             legend.position = "top")
+
+# plot bar chart
+ggplot(data=melted, aes(x=sample, y=value, fill=analysis)) + 
+        facet_grid(passed ~ .) + 
+        geom_bar(stat="identity", position = "dodge") + 
+        labs(y="# peaks") + 
+        ggtitle(paste0("IDR summary for ", n, " samples"))
+
+```
+
+The above plot shows the number of replicated peaks (y-axis) per sample and IDR sub-analysis (x-axis). The top row shows only samples where the number of replicated peaks indicate low reproducibility, whereas the bottom row shows the samples with a high reproducibility.
+
+
+## References
+1. Landt, S. G. et al. ChIP-seq guidelines and practices of the ENCODE and modENCODE consortia. Genome Res. 22, 1813–31 (2012).
+
+<a download="summarize-simulation.Rmd" href="`r base64enc::dataURI(file = params$rmd, mime = 'text/rmd', encoding = 'base64')`">R Markdown source file (to produce this document)</a>

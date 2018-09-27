@@ -1,0 +1,26 @@
+# -------------------------------------------------------------------------------
+# Call peaks for each sample using MACS2 peak caller
+# -------------------------------------------------------------------------------
+rule call_peaks_macs2:
+        input:
+                control=config["data"]["control"],
+                treatment=config["results"]["processed"] + "{sample}.bam",
+        output:
+                config["results"]["peaks"] + "{sample}_peaks.narrowPeak"
+        params:
+                genome=config["macs"]["genome"],
+                qcut=config["macs"]["qcut"],
+                pcut=config["macs"]["pcut"],
+                maxpeaks=config["idr"]["maxpeaks"],
+                prefix="{sample}",
+                odir="results/"
+        resources:
+                mem_mb=600
+        threads: 1
+        benchmark:
+                "benchmarks/call_peaks_macs2/{sample}.bmk"
+        log:
+                "logs/call_peaks_macs2/{sample}.log"
+        wrapper:
+                "file:wrappers/idr/macs2_peaks"
+
