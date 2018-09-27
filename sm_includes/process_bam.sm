@@ -95,7 +95,7 @@ def map_sample_name(wildcards):
 # ------------------------------------------------------------------------------
 # Process bam files, i.e. remove duplicates and low quality reads.
 # Outputs processed and sorted files.
-# NOTE: we constrain sample names so taht they must not contain "_" characters!
+# NOTE: we constrain sample names so that they must not contain "_" characters!
 # ------------------------------------------------------------------------------
 rule process_bam:
 	input: 
@@ -122,6 +122,9 @@ rule process_bam:
 		 samtools sort -@{threads} - | \
 		 samtools rmdup -S - {output[0]} && samtools index {output[0]}"
 
+# -----------------------------------------------------------------------------
+# Downsample bam files to a specific number of reads.
+# -----------------------------------------------------------------------------
 rule downsample_bam:
 	input: 
 		bam=config["results"]["processed"]+ "{sample}.bam"
