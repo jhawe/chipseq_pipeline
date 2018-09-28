@@ -125,11 +125,31 @@ rule process_bam:
 # -----------------------------------------------------------------------------
 # Downsample bam files to a specific number of reads.
 # -----------------------------------------------------------------------------
-rule downsample_bam:
-	input: 
+#rule downsample_bam:
+#	input: 
+#		bam=config["results"]["processed"]+ "{sample}.bam"
+#	output:
+#		bam=config["results"]["processed"] + "{sample}_{samplesize}.bam", 
+#		bai=config["results"]["processed"] + "{sample}_{samplesize}.bam.bai",
+#	log:
+#		"logs/downsample_bam/{sample}_{samplesize}.log"
+#	benchmark:
+#		"benchmarks/downsample_bam/{sample}_{samplesize}.bmk"
+#	resources:
+#		mem_mb=1000
+#	threads:
+##		8
+#	wrapper:		
+##		"file:wrappers/samtools/downsample"
+
+# -----------------------------------------------------------------------------
+# Downsample bam files to a specific number of reads.
+# -----------------------------------------------------------------------------
+rule downsample_bam_pe:
+	input:
 		bam=config["results"]["processed"]+ "{sample}.bam"
 	output:
-		bam=config["results"]["processed"] + "{sample}_{samplesize}.bam", 
+		bam=config["results"]["processed"] + "{sample}_{samplesize}.bam",
 		bai=config["results"]["processed"] + "{sample}_{samplesize}.bam.bai",
 	log:
 		"logs/downsample_bam/{sample}_{samplesize}.log"
@@ -137,7 +157,32 @@ rule downsample_bam:
 		"benchmarks/downsample_bam/{sample}_{samplesize}.bmk"
 	resources:
 		mem_mb=1000
+	conda:
+		"../envs/samtools.yaml"
 	threads:
 		8
-	wrapper:		
-		"file:wrappers/samtools/downsample"
+	shell:
+		"""		
+		# get file and directory name
+		in={input}
+		out={output[0]}
+		fn=$(basename $in)
+		fn_noext=$(basename $fn .bam)
+		dn=$(dirname $in)/
+
+		# some temp file names
+		keys=${{dn}}${{fn_noext}}_keys.txt
+		header=${{dn}}${{fn_noext}}_header.txt
+
+		# get header
+		samtools view -H $in > ${{header}}
+
+		# get unique read names
+#		samtools view $in | cut -f 1 | sort -k1,1 | uniq | shuf -n {wildcards.samplesize} > ${{keys}}
+
+		# extract reads selected randomly from the input files read names
+		samtools view -h ${{in}} | awk 'NR==FNR{{arr[$1];next}} $1 in arr || $1 ~ /^@/' ${{keys}} - | samtools view -b -@{threads} - | samtools sort -@{threads} -o ${{out}}
+		samtools reheader -i -P ${{header}} ${{out}}
+		samtools index ${{out}}
+		rm ${{keys}} ${{header}}
+		"""
