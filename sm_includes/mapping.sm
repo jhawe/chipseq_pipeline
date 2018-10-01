@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 rule bwa_mem_pe:
 	input:
-		pairs_to_fastq
+		reads=pairs_to_fastq
 	output:
 		mapped=config["data"]["mapped"] + "{sample}_{lane}_1_2.bam"
 	wildcard_constraints:
