@@ -1,7 +1,7 @@
 {
 	"data" : {
+		"sample_sheet" : "data/current/sample_sheet.tsv",
 		"mapped" : "data/current/mapped/",
-		"raw_dir" : "data/current/raw/",
 		"genome_idx" : "/storage/groups/epigenereg01/datasets/igenomes/Mus_musculus/UCSC/mm9/Sequence/BWAIndex/genome.fa",
 		"control" : "results/input.bam"
 	},

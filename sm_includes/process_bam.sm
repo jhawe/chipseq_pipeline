@@ -1,105 +1,11 @@
 # ------------------------------------------------------------------------------
-# Align paired-end FASTQ files using BWA-mem. Uses official snakemake wrapper.
-# Taken (and modified) from:
-# https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bwa/mem.html
-# ------------------------------------------------------------------------------
-rule bwa_mem_pe:
-	input:
-		reads=[config["data"]["raw_dir"] + "{sample}_{LANE}_{R1}.fastq.gz", config["data"]["raw_dir"] + "{sample}_{LANE}_{R2}.fastq.gz"]
-	output:
-		mapped=config["data"]["mapped"] + "{sample}_{LANE}_{R1}_{R2}.bam"
-	wildcard_constraints:
-		LANE="L[0-9]{3}",
-		R1=1,
-		R2=2
-	log:
-		"logs/bwa_mem/{sample}_{LANE}_{R1}_{R2}.log"
-	benchmark:
-		"benchmarks/bwa_mem/{sample}_{LANE}_{R1}_{R2}.bmk"
-	params:
-		index=config["data"]["genome_idx"],
-		extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
-		sort="samtools",             # Can be 'none', 'samtools' or 'picard'.
-		sort_order="coordinate",  # Can be 'queryname' or 'coordinate'.
-		sort_extra=""            # Extra args for samtools/picard.
-	threads: 8
-	resources:
-		mem_mb=3000
-	wrapper:
-		"0.27.1/bio/bwa/mem"
-
-# ------------------------------------------------------------------------------
-# Align single-end FASTQ files using BWA-mem. Uses official snakemake wrapper.
-# Taken (and modified) from:
-# https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bwa/mem.html
-# ------------------------------------------------------------------------------
-rule bwa_mem_se:
-        input:
-                reads=config["data"]["raw_dir"] + "{sample}.fastq.gz"
-        output:
-                mapped=config["data"]["mapped"] + "{sample}.bam"
-        log:
-                "logs/bwa_mem/{sample}.log"
-        benchmark:
-                "benchmarks/bwa_mem/{sample}.bmk"
-        params:
-                index=config["data"]["genome_idx"],
-                extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
-                sort="samtools",             # Can be 'none', 'samtools' or 'picard'.
-                sort_order="coordinate",  # Can be 'queryname' or 'coordinate'.
-                sort_extra=""            # Extra args for samtools/picard.
-        threads: 8
-        resources:
-                mem_mb=3000
-        wrapper:
-                "0.27.1/bio/bwa/mem"
-
-# ------------------------------------------------------------------------------
-# Merge alignments of a sample which has been processed on several lanes
-# ------------------------------------------------------------------------------
-rule merge_lanes:
-	input:
-		config["data"]["mapped"] + "{sample}_{lane1}_1_2.bam",
-		config["data"]["mapped"] + "{sample}_{lane2}_1_2.bam"
-	output:
-		config["data"]["mapped"] + "{sample}_{lane1}_{lane2}.bam"
-	wildcard_constraints:
-		lane1="L[0-9]{3}",
-		lane2="L[0-9]{3}"
-	conda:
-		"../envs/samtools.yaml"
-	log:
-		"logs/merge_lanes/{sample}_{lane1}_{lane2}.log"
-	threads: 8
-	resources:
-		mem_mb=3000
-	benchmark:
-		"benchmarks/merge_lanes/{sample}_{lane1}_{lane2}.bmk"
-	shell:
-		"""
-		samtools merge -r {output[0]} {input[0]} {input[1]} &> {log}
-		"""
-
-# ------------------------------------------------------------------------------
-# Fully process the aligned bam files, i.e. remove duplicates and
-# low quality reads using samtools
-# ------------------------------------------------------------------------------
-def map_sample_name(wildcards):
-	sample = wildcards.sample
-	
-	# TODO: check whether we need a merged file, a single-lane paired-end alignment
-	# or a single-end alignment
-	
-	return [ config["data"]["mapped"] + "GAR0474_L001_L002.bam" ]
-
-# ------------------------------------------------------------------------------
 # Process bam files, i.e. remove duplicates and low quality reads.
 # Outputs processed and sorted files.
 # NOTE: we constrain sample names so that they must not contain "_" characters!
 # ------------------------------------------------------------------------------
 rule process_bam:
 	input: 
-		map_sample_name
+		id_to_merged
 	output: 
 		config["results"]["processed"] + "{sample}.bam", 
 		config["results"]["processed"] + "{sample}.bam.bai"
@@ -123,27 +29,7 @@ rule process_bam:
 		 samtools rmdup -S - {output[0]} && samtools index {output[0]}"
 
 # -----------------------------------------------------------------------------
-# Downsample bam files to a specific number of reads.
-# -----------------------------------------------------------------------------
-#rule downsample_bam:
-#	input: 
-#		bam=config["results"]["processed"]+ "{sample}.bam"
-#	output:
-#		bam=config["results"]["processed"] + "{sample}_{samplesize}.bam", 
-#		bai=config["results"]["processed"] + "{sample}_{samplesize}.bam.bai",
-#	log:
-#		"logs/downsample_bam/{sample}_{samplesize}.log"
-#	benchmark:
-#		"benchmarks/downsample_bam/{sample}_{samplesize}.bmk"
-#	resources:
-#		mem_mb=1000
-#	threads:
-##		8
-#	wrapper:		
-##		"file:wrappers/samtools/downsample"
-
-# -----------------------------------------------------------------------------
-# Downsample bam files to a specific number of reads.
+# Downsample bam files to a specific number of reads/tags.
 # -----------------------------------------------------------------------------
 rule downsample_bam_pe:
 	input:
@@ -151,6 +37,8 @@ rule downsample_bam_pe:
 	output:
 		bam=config["results"]["processed"] + "{sample}_{samplesize}.bam",
 		bai=config["results"]["processed"] + "{sample}_{samplesize}.bam.bai",
+		keys=temp(config["results"]["processed"] + "{sample}_{samplesize}_keys.txt"),
+		header=temp(config["results"]["processed"] + "{sample}_{samplesize}_header.txt")
 	log:
 		"logs/downsample_bam/{sample}_{samplesize}.log"
 	benchmark:
@@ -163,26 +51,20 @@ rule downsample_bam_pe:
 		8
 	shell:
 		"""		
-		# get file and directory name
+		# get file and directory names
 		in={input}
-		out={output[0]}
-		fn=$(basename $in)
-		fn_noext=$(basename $fn .bam)
-		dn=$(dirname $in)/
-
-		# some temp file names
-		keys=${{dn}}${{fn_noext}}_keys.txt
-		header=${{dn}}${{fn_noext}}_header.txt
+		out={output.bam}
+		header={output.header}
+		keys={output.keys}
 
 		# get header
 		samtools view -H $in > ${{header}}
 
 		# get unique read names
-#		samtools view $in | cut -f 1 | sort -k1,1 | uniq | shuf -n {wildcards.samplesize} > ${{keys}}
+		samtools view $in | cut -f 1 | sort -k1,1 | uniq | shuf -n {wildcards.samplesize} > ${{keys}}
 
 		# extract reads selected randomly from the input files read names
 		samtools view -h ${{in}} | awk 'NR==FNR{{arr[$1];next}} $1 in arr || $1 ~ /^@/' ${{keys}} - | samtools view -b -@{threads} - | samtools sort -@{threads} -o ${{out}}
 		samtools reheader -i -P ${{header}} ${{out}}
 		samtools index ${{out}}
-		rm ${{keys}} ${{header}}
 		"""

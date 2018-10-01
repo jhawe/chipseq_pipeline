@@ -1,0 +1,84 @@
+# ------------------------------------------------------------------------------
+# Align paired-end FASTQ files using BWA-mem. Uses official snakemake wrapper.
+# Taken (and modified) from:
+# https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bwa/mem.html
+# ------------------------------------------------------------------------------
+rule bwa_mem_pe:
+	input:
+		pairs_to_fastq
+	output:
+		mapped=config["data"]["mapped"] + "{sample}_{lane}_1_2.bam"
+	wildcard_constraints:
+		lane="L[0-9]{3}",
+	log:
+		"logs/bwa_mem/{sample}_{lane}_1_2.log"
+	benchmark:
+		"benchmarks/bwa_mem/{sample}_{lane}_1_2.bmk"
+	params:
+		index=config["data"]["genome_idx"],
+		extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
+		sort="samtools",             # Can be 'none', 'samtools' or 'picard'.
+		sort_order="coordinate",  # Can be 'queryname' or 'coordinate'.
+		sort_extra=""            # Extra args for samtools/picard.
+	threads: 
+		8
+	resources:
+		mem_mb=3000
+	wrapper:
+		"0.27.1/bio/bwa/mem"
+
+# ------------------------------------------------------------------------------
+# Align single-end FASTQ files using BWA-mem. Uses official snakemake wrapper.
+# Taken (and modified) from:
+# https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bwa/mem.html
+# ------------------------------------------------------------------------------
+rule bwa_mem_se:
+        input:
+                reads=merged_to_pairs
+        output:
+                mapped=config["data"]["mapped"] + "{sample}.bam"
+        log:
+                "logs/bwa_mem/{sample}.log"
+        benchmark:
+                "benchmarks/bwa_mem/{sample}.bmk"
+        wildcard_constraints:
+                sample="[a-zA-Z0-9.-]*"
+        params:
+                index=config["data"]["genome_idx"],
+                extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
+                sort="samtools",             # Can be 'none', 'samtools' or 'picard'.
+                sort_order="coordinate",  # Can be 'queryname' or 'coordinate'.
+                sort_extra=""            # Extra args for samtools/picard.
+        threads: 
+                8
+        resources:
+                mem_mb=3000
+        wrapper:
+                "0.27.1/bio/bwa/mem"
+
+# ------------------------------------------------------------------------------
+# Merge alignments of a sample which has been processed on several lanes
+# ------------------------------------------------------------------------------
+rule merge_lanes:
+	input:
+		merged_to_pairs
+	output:
+		config["data"]["mapped"] + "{sample}_{lane1}_{lane2}.bam"
+	wildcard_constraints:
+		lane1="L[0-9]{3}",
+		lane2="L[0-9]{3}"
+	conda:
+		"../envs/samtools.yaml"
+	log:
+		"logs/merge_lanes/{sample}_{lane1}_{lane2}.log"
+	threads: 
+		8
+	resources:
+		mem_mb=3000
+	benchmark:
+		"benchmarks/merge_lanes/{sample}_{lane1}_{lane2}.bmk"
+	shell:
+		"""
+		samtools merge -r {output[0]} {input[0]} {input[1]} &> {log}
+		"""
+
