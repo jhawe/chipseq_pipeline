@@ -15,5 +15,5 @@ all tools which are run are used in the same version as in the paper.
 
 ```{bash} 
 nohup nice snakemake --use-conda -u cluster.config --jobs=100 --local-cores=1 --cluster "qsub -pe smp {threads} -hard -l job_mem={resources.mem_mb}M \
-      -q {cluster.q} -cwd -V -o {log} -e {log} -N {cluster.N}" call_peaks_all &
+      -q {cluster.q} -cwd -V -o {log} -e {log} -N {cluster.N}" all &
 ```

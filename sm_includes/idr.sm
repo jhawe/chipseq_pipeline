@@ -81,7 +81,7 @@ rule merge_replicates:
 		mem_mb=2000
 	threads: 1
 	conda:
-		"envs/samtools.yaml"
+		"../envs/samtools.yaml"
 	shell:
 		"samtools merge {output[0]} {input[0]} {input[1]} \
 		 && samtools index {output[0]} &> {log}"
@@ -174,7 +174,7 @@ rule test:
 		mem_mb=500
 	threads: 1
 	conda:
-		"wrappers/idr/consistency/environment.yaml"
+		"../wrappers/idr/consistency/environment.yaml"
 	shell:
 		"idr --rank p.value -o {output[0]} --input-file-type narrowPeak --use-old-output-format -s {input.rep1} {input.rep2}"
 

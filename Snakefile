@@ -18,8 +18,8 @@ SAMPLE_SHEET = load_sample_info(config["data"]["sample_sheet"])
 #"BH42","BH52","BH61","BH63","AL12","AL31","AL41","BL11","BL21","BL22-2", "BL31", "BL46", "BL51", "BL52", "BL61","BL62"]
 
 # for testing
-SAMPLES = ["AL11", "AL22"]
-SAMPLES_NOREP = ["AL1", "AL2"]
+SAMPLES = ["BH4-1", "BH5-1"]
+SAMPLES_NOREP = ["BH4", "BH5"]
 
 # ------------------------------------------------------------------------------
 # Rules to exclude for cluster processing
