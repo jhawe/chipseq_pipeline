@@ -7,7 +7,8 @@
 	},
 	"results" : {
 		"processed" : "results/current/processed_bam/",
-		"peaks" : "results/current/peaks/"
+		"peaks" : "results/current/peaks/",
+		"idr" : "results/current/idr/"
 	},
 
 	"downsample" : {
@@ -19,8 +20,8 @@
 	},
 
 	"split_bam" : {
-		"suffix1" : "-split1",
-		"suffix2" : "-split2"
+		"suffix1" : "_split1",
+		"suffix2" : "_split2"
 	},
 	"samtools" : {
 		"mapq" : 30

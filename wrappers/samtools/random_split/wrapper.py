@@ -7,4 +7,4 @@ __email__ = "johann.hawe@helmholtz-muenchen.de"
 from snakemake.shell import shell
 
 
-shell("samtools view -s0.5 {snakemake.params} -U {snakemake.output[0]} {snakemake.input[0]} > {snakemake.output[1]} && samtools index {snakemake.output[0]} && samtools index {snakemake.output[1]}")
+shell("samtools view -b -s0.5 {snakemake.params} -@{snakemake.threads} -U {snakemake.output[0]} {snakemake.input[0]} > {snakemake.output[1]} && samtools index {snakemake.output[0]} && samtools index {snakemake.output[1]}")

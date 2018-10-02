@@ -1,12 +1,5 @@
 configfile: "./config.json"
 
-# lists containing used variables for generating file names
-# suffixes for replicates
-RSU = [config["replicates"]["suffix1"], config["replicates"]["suffix2"]]
-# suffixes for split bam files in idr analysis
-SSU = [config["split_bam"]["suffix1"],config["split_bam"]["suffix2"]]
-
-
 # ------------------------------------------------------------------------------
 # include all rules from the sub-processes and the methods file
 # ------------------------------------------------------------------------------
@@ -14,7 +7,7 @@ include: "sm_includes/methods.py"
 include: "sm_includes/process_bam.sm"
 include: "sm_includes/call_peaks.sm"
 include: "sm_includes/mapping.sm"
-#include: "sm_includes/idr.sm"
+include: "sm_includes/idr.sm"
 
 # load the samplesheet
 SAMPLE_SHEET = load_sample_info(config["data"]["sample_sheet"])
@@ -26,6 +19,7 @@ SAMPLE_SHEET = load_sample_info(config["data"]["sample_sheet"])
 
 # for testing
 SAMPLES = ["AL11", "AL22"]
+SAMPLES_NOREP = ["AL1", "AL2"]
 
 # ------------------------------------------------------------------------------
 # Rules to exclude for cluster processing
@@ -45,3 +39,23 @@ rule call_peaks_all:
 	input:
 		expand(config["results"]["peaks"] + "{sample}_peaks.narrowPeak", sample=SAMPLES)
 
+rule idr_all:
+        input:  
+                 expand(config["results"]["idr"] + "{sample}_idr_summary.txt", sample=SAMPLES_NOREP)
+        output:
+                config["results"]["idr"] + "idr_summary.txt"
+        shell:
+                "cat {input} | sort -r | uniq > {output}"
+
+# Create summary plots for the IDR analysis.
+rule plot_idr:
+        input: config["results"]["idr"] + "idr_summary.txt"
+        output: config["results"]["idr"] + "idr_summary.html"
+        script:
+                "scripts/plot-idr.Rmd"
+
+# calls the complete pipeline (peak calling, idr analysis, ...TODO)
+rule all:
+	input:
+		config["results"]["idr"] + "idr_summary.html",
+		expand(config["results"]["peaks"] + "{sample}_peaks.narrowPeak", sample=SAMPLES)
