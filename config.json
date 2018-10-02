@@ -3,13 +3,16 @@
 		"sample_sheet" : "data/current/sample_sheet.tsv",
 		"mapped" : "data/current/mapped/",
 		"genome_idx" : "/storage/groups/epigenereg01/datasets/igenomes/Mus_musculus/UCSC/mm9/Sequence/BWAIndex/genome.fa",
-		"control" : "results/input.bam"
+		"control" : "results/current/input.bam"
 	},
 	"results" : {
 		"processed" : "results/current/processed_bam/",
-		"peaks" : "results/current/peaks"
+		"peaks" : "results/current/peaks/"
 	},
 
+	"downsample" : {
+		"size" : 20000000
+	},
 	"replicates" : {
 		"suffix1" : "-1",
 		"suffix2" : "-2"

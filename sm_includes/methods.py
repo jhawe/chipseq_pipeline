@@ -16,15 +16,14 @@ class Sample:
         diet = ""
         is_paired = False
         is_multilane = False
-        raw = {}
         raw_lane1 = {}
-	lane1_name = ""
+        lane1_name = ""
         raw_lane2 = {}
-	lane2_name = ""
+        lane2_name = ""
 
         def __str__(self):
-                return "Showing sample with id {}:\n\t{}\n\t{}\n\t{}\n\t{}\n\t{}\n\t{}\n\t{}".format(self.id,
-                        self.diet, self.is_paired, self.raw, self.raw_lane1, self.raw_lane2, self.lane1_name, self.lane2_name)
+                return "Showing sample with id {}:\n\t{}\n\t{}\n\t{}\n\t{}\n\t{}\n\t{}".format(self.id,
+                        self.diet, self.is_paired, self.raw_lane1, self.raw_lane2, self.lane1_name, self.lane2_name)
 
 
 # ------------------------------------------------------------------------------
@@ -59,11 +58,11 @@ def load_sample_info(file):
                                 s.is_multilane = True
                                 s.raw_lane1 = raw[0].split("=")[1].split(",")
                                 s.raw_lane2 = raw[1].split("=")[1].split(",")
-				s.lane1_name = raw[0].split("=")[0]
-				s.lane2_name = raw[1].split("=")[0]
+                                s.lane1_name = raw[0].split("=")[0]
+                                s.lane2_name = raw[1].split("=")[0]
                         else:
-                                s.raw = raw[0].split("=")[1].split(",")
-				s.lane1_name = raw[0].split("=")[0]
+                                s.raw_lane1 = raw[0].split("=")[1].split(",")
+                                s.lane1_name = raw[0].split("=")[0]
 
                         dict[s.id] = s
         return(dict)
@@ -76,12 +75,12 @@ def id_to_merged(wildcards):
 	s      = SAMPLE_SHEET[sample]
 	pe     = s.is_paired
 	ml     = s.is_multilane
-	print(sample)
+
 	if(s.is_paired):
 		if(s.is_multilane):
 			return(config["data"]["mapped"] + "{}_{}_{}.bam".format(sample, s.lane1_name, s.lane2_name))
 		else:
-			return(config["data"]["mapped"] + "{}_1_2.bam".format(sample))		
+			return(config["data"]["mapped"] + "{}_{}_1_2.bam".format(sample, s.lane1_name))
 	elif(s.is_multilane):
 		return(config["data"]["mapped"] + "{}_{}_{}.bam".format(sample, s.lane1_name, s.lane2_name))
 	else:
@@ -106,9 +105,7 @@ def merged_to_pairs(wildcards):
 	elif(s.is_paired):
 		print("Not implemented yet.")
 	else:		
-		pairs = s.raw
-
-	print(pairs)
+		pairs = s.raw_lane1
 
 	# create the paired 
 	return(pairs)

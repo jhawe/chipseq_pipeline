@@ -81,4 +81,3 @@ rule merge_lanes:
 		"""
 		samtools merge -r {output[0]} {input[0]} {input[1]} &> {log}
 		"""
-

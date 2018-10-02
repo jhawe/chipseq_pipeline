@@ -1,4 +1,0 @@
-name: macs2 peaks / regionpeak
-description: Calls low stringency peaks using macs2 and zips the resulting narrowPeak file into a 'regionpeak' file
-authors:
-  - Johann Hawe

@@ -1,0 +1,4 @@
+name: macs2 peaks
+description: Calls ChIP-seq peaks using macs2 
+authors:
+  - Johann Hawe
