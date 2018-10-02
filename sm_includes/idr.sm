@@ -26,6 +26,7 @@ rule link_replicate:
 		ln -s {input[0]} {output[0]}
 		ln -s {input[1]} {output[1]}
 		"""
+
 # ------------------------------------------------------------------------------
 # split bam files to 50/50 reads, i.e. create pseudo-replicates
 # ------------------------------------------------------------------------------
@@ -49,9 +50,9 @@ rule split_merged:
         input:
                 config["results"]["idr"] + "{sample}_merged.bam"
         output:
-#                expand(config["results"]["idr"] + "{{sample}}_merged_{sp}.bam", sp=SSU)
-                config["results"]["idr"] + "{sample}_merged_split1.bam",
-                config["results"]["idr"] + "{sample}_merged_split2.bam"
+                expand(config["results"]["idr"] + "{{sample}}_merged{sp}.bam", sp=SSU)
+                #config["results"]["idr"] + "{sample}_merged_split1.bam",
+                #config["results"]["idr"] + "{sample}_merged_split2.bam"
         threads:
                 8
         resources:
