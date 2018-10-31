@@ -1,0 +1,18 @@
+# -------------------------------------------------------------------------------
+# Remove backlisted peaks from the called peaks
+# -------------------------------------------------------------------------------
+rule remove_blacklisted_peaks:
+        input:
+                peaks=config["results"]["peaks"] + "{sample}_peaks.narrowPeak"
+                blacklist=config["data"]["encode_blacklisted"]
+        output:
+                config["results"]["peaks"] + "{sample}_blacklistremoved.bed"
+        resources:
+                mem_mb=600
+        threads: 1
+        benchmark:
+                "benchmarks/remove_blacklisted_peaks/{sample}.bmk"
+        log:
+                "logs/remove_blacklisted_peaks/{sample}.log"
+        script:
+                "../scripts/remove_blacklisted_peaks.R"
