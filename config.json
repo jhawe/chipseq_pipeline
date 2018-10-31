@@ -3,7 +3,8 @@
 		"sample_sheet" : "data/current/sample_sheet.tsv",
 		"mapped" : "data/current/mapped/",
 		"genome_idx" : "/storage/groups/epigenereg01/datasets/igenomes/Mus_musculus/UCSC/mm9/Sequence/BWAIndex/genome.fa",
-		"control" : "results/current/input.bam"
+		"control" : "results/current/input.bam",
+		"encode_blacklisted" : "data/current/encode/mm9-blacklist.bed"
 	},
 	"results" : {
 		"processed" : "results/current/processed_bam/",
