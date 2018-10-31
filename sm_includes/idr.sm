@@ -23,8 +23,8 @@ rule link_replicate:
 		sample="[a-zA-Z0-9.-]*"
 	shell:
 		"""
-		ln -s {input[0]} {output[0]}
-		ln -s {input[1]} {output[1]}
+		ln -r -s {input[0]} {output[0]}
+		ln -r -s {input[1]} {output[1]}
 		"""
 
 # ------------------------------------------------------------------------------
@@ -105,9 +105,9 @@ rule callpeaks_idr:
                mem_mb=600
        threads: 1
        benchmark:
-               "benchmarks/regionpeak/{sample}.bmk"
+               "benchmarks/callpeaks_idr/{sample}.bmk"
        log:
-               "logs/regionpeak/{sample}.log"
+               "logs/callpeaks_idr/{sample}.log"
        wrapper:
                "file:wrappers/macs2/callpeaks"
 
