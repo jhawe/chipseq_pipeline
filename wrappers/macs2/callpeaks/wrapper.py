@@ -18,7 +18,11 @@ from snakemake.shell import shell
 # get the sample information
 # we need this to get the paired end information
 SAMPLE_SHEET = methods.load_sample_info(snakemake.config["data"]["sample_sheet"])
-sample = SAMPLE_SHEET[snakemake.wildcards.sample]
+s = snakemake.wildcards.sample
+if("_" in s):
+	s = s[:s.index("_")]
+
+sample = SAMPLE_SHEET[s]
 
 # macs2 input files
 treatment = snakemake.input.treatment
