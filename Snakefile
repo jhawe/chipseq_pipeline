@@ -20,18 +20,18 @@ SAMPLE_SHEET = load_sample_info(config["data"]["sample_sheet"])
 #"BH4-2","BH5-2","BH6-1","BH6-3","AL1-2","AL3-1","AL4-1","BL1-1","BL21","BL2-2", "BL3-1", "BL4-6", "BL5-1", "BL5-2", "BL6-1","BL6-2"]
 
 SAMPLES = ["BH4-1", "BH5-1", "BH1-1", "BH1-2", "BH2-1", "BH2-2", "BH3-1", "BH3-2",
-"BH4-2","BH5-2","BH6-1","BH6-3","AL1-2","AL3-1","AL4-1","BL1-1","BL21","BL2-2", "BL3-1", "BL4-6", "BL5-1", "BL5-2", "BL6-1","BL6-2"]
+"BH4-2","BH5-2","BH6-1","BH6-3","AL1-2","AL3-1","AL4-1","BL1-1","BL2-1","BL2-2", "BL3-1", "BL4-6", "BL5-1", "BL5-2", "BL6-1","BL6-2"]
 SAMPLES_NOREP = ["BH4", "BH5", "BH2", "BH3","BH6","AL1","AL3","AL4","BL1-1","BL21","BL2-2", "BL3-1", "BL4-6", "BL5-1", "BL5-2", "BL6-1","BL6-2"]
 
 # for testing
-SAMPLES = ["BH4-1", "BH5-1"]
-SAMPLES_NOREP = ["BH4", "BH5"]
+#SAMPLES = ["BH4-1", "BH5-1"]
+#SAMPLES_NOREP = ["BH4", "BH5"]
 
 # ------------------------------------------------------------------------------
 # Rules to exclude for cluster processing
 # ------------------------------------------------------------------------------
 localrules:
-	process_all, call_peaks_all, link_replicate
+	process_all, call_peaks_all, link_replicate, filtered_peaks_all, remove_blacklisted_peaks
 
 # ------------------------------------------------------------------------------
 # Define global rules
@@ -44,6 +44,10 @@ rule process_all:
 rule call_peaks_all:
 	input:
 		expand(config["results"]["peaks"] + "{sample}_peaks.narrowPeak", sample=SAMPLES)
+
+rule filtered_peaks_all:
+	input:
+		expand(config["results"]["peaks"] + "{sample}_blacklistremoved.bed", sample=SAMPLES)
 
 rule idr_all:
         input:  

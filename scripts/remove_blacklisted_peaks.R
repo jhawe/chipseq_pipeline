@@ -4,7 +4,7 @@
 #'
 #' @author Johann Hawe <johann.hawe@helmholtz-muenchen.de>
 # -------------------------------------------------------------------------------
-sink(file=snakemake@log[[1]], append=F, type="output")
+sink(file=snakemake@log[[1]], append=F, type="output", split=T)
 
 # -------------------------------------------------------------------------------
 print("Loading libraries and scripts.")
@@ -33,10 +33,12 @@ blacklist <- import(fblacklist)
 idxs <- overlapsAny(peaks, blacklist)
 peaks <- peaks[idxs]
 
-print(paste0("Removed ", sum(!idxs)), " peaks from peak list."))
+print(paste0("Removed ", sum(!idxs), " peaks from peak list."))
 
 # export the new peak list
-export(peaks, fout)
+# export(peaks, fout) has bug for empty peak lists
+write.table(cbind(as.character(seqnames(peaks)), start(peaks), end(peaks)),
+            col.names=F, row.names=F, quote=F, sep="\t", file=fout)
 
 # -------------------------------------------------------------------------------
 print("SessionInfo:")
