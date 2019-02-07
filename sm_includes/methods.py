@@ -104,10 +104,8 @@ def merged_to_pairs(wildcards):
 			pairs  = config["data"]["mapped"] + "{}.bam".format(sample)
 	elif(s.is_paired):
 		print("Not implemented yet.")
-	else:		
+	else:
 		pairs = s.raw_lane1
-
-	# create the paired 
 	return(pairs)
 
 def pairs_to_fastq(wildcards):
