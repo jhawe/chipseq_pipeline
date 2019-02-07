@@ -13,7 +13,7 @@
 class Sample:
 	# define most important properties
         id = ""
-        diet = ""
+        condition = ""
         is_paired = False
         is_multilane = False
         raw_lane1 = {}
@@ -23,7 +23,7 @@ class Sample:
 
         def __str__(self):
                 return "Showing sample with id {}:\n\t{}\n\t{}\n\t{}\n\t{}\n\t{}\n\t{}".format(self.id,
-                        self.diet, self.is_paired, self.raw_lane1, self.raw_lane2, self.lane1_name, self.lane2_name)
+                        self.condition, self.is_paired, self.raw_lane1, self.raw_lane2, self.lane1_name, self.lane2_name)
 
 
 # ------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ def load_sample_info(file):
 
                         s = Sample()
                         s.id = el[0]
-                        s.diet = el[2]
+                        s.condition = el[2]
                         s.is_paired = (el[4] == "PE")
 
                         raw = el[5].split("|")
