@@ -15,6 +15,7 @@
 	"downsample" : {
 		"size" : 14000000
 	},
+
 	"replicates" : {
 		"suffix1" : "-1",
 		"suffix2" : "-2"
