@@ -16,9 +16,11 @@ SAMPLE_SHEET = load_sample_info(config["data"]["sample_sheet"])
 # here we define the actual samples to be processed
 # on the long run, we want to extract this from the 
 # sample sheet.
+#SAMPLES = SAMPLE_SHEET.keys()
+#print(SAMPLES)
 # For now we just define two samples for testing:
 SAMPLES = ["BH4-1", "BH5-1"]
-# needed to perform IDR
+# needed to perform IDR, TODO
 SAMPLES_NOREP = ["BH4", "BH5"]
 
 # ------------------------------------------------------------------------------
