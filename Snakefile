@@ -1,4 +1,4 @@
-configfile: "./config.json"
+configfile: "./configs/workflow.json"
 
 # ------------------------------------------------------------------------------
 # include all rules from the sub-processes and the methods file

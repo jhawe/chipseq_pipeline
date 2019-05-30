@@ -18,6 +18,6 @@ To obtain only peak calls for all samples, filtered for encode blacklisted peaks
 replace the keyword 'all' at the end of the snakemake call with 'filtered_peaks_all'
 
 ```{bash} 
-nohup nice snakemake --use-conda -u cluster.config --jobs=100 --local-cores=1 --cluster "qsub -pe smp {threads} -hard -l job_mem={resources.mem_mb}M \
+nohup nice snakemake --use-conda -u configs/cluster.json --jobs=100 --local-cores=1 --cluster "qsub -pe smp {threads} -hard -l job_mem={resources.mem_mb}M \
       -q {cluster.q} -cwd -V -o {log} -e {log} -N {cluster.N}" all &
 ```
