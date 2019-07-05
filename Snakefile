@@ -3,12 +3,12 @@ configfile: "./configs/workflow.json"
 # ------------------------------------------------------------------------------
 # include all rules from the sub-processes and the methods file
 # ------------------------------------------------------------------------------
-include: "sm_includes/methods.py"
-include: "sm_includes/process_bam.sm"
-include: "sm_includes/call_peaks.sm"
-include: "sm_includes/mapping.sm"
-include: "sm_includes/idr.sm"
-include: "sm_includes/peak_universe.sm"
+include: "workflow/methods.py"
+include: "workflow/process_bam.sm"
+include: "workflow/call_peaks.sm"
+include: "workflow/mapping.sm"
+include: "workflow/idr.sm"
+include: "workflow/peak_universe.sm"
 
 # load the samplesheet
 SAMPLE_SHEET = load_sample_info(config["data"]["sample_sheet"])
