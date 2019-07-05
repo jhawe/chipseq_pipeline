@@ -1,0 +1,12 @@
+channels:
+  - bioconda
+  - conda-forge
+  - r
+  - defaults
+dependencies:
+  - r ==3.4.1
+  - macs2 ==2.1.1
+  - samtools ==1.5
+  - bamtools ==2.5.1
+  - bioconductor-genomicranges ==1.28.3
+  - bioconductor-rtracklayer ==1.36.3
