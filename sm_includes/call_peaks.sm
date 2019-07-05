@@ -12,8 +12,9 @@ rule call_peaks_macs2:
                 qcut=config["macs"]["qcut"],
                 maxpeaks=config["idr"]["maxpeaks"],
                 prefix="{sample}",
-                odir=config["results"]["peaks"]
-#		paired=SAMPLE_SHEET["{sample}"].is_paired
+                odir=config["results"]["peaks"],
+#		paired=SAMPLE_SHEET["{sample}"].is_paired,
+                time="02:00:00"
         resources:
                 mem_mb=600
         threads: 1
