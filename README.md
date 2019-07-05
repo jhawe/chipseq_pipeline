@@ -1,3 +1,5 @@
+> NOTE: this pipeline is still under development
+
 # A snakemake pipeline for ChIP-sequencing data
 
 ## Introduction
