@@ -20,4 +20,10 @@ replace the keyword 'all' at the end of the snakemake call with 'filtered_peaks_
 ```{bash} 
 nohup nice snakemake --use-conda -u configs/cluster.json --jobs=100 --local-cores=1 --cluster "qsub -pe smp {threads} -hard -l job_mem={resources.mem_mb}M \
       -q {cluster.q} -cwd -V -o {log} -e {log} -N {cluster.N}" all &
+
+# SLURM test
+nohup nice snakemake --use-conda -u configs/slurm.config --jobs=100 --local-cores=1 --cluster \
+  "sbatch -t {cluster.time} -c {cluster.cpu} --mem-per-cpu {cluster.mem} \
+      -p {cluster.partition} -o {cluster.log} -e {cluster.log}" results/current/peaks/BH1-1_peaks.narrowPeak &
+
 ```
